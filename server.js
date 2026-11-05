@@ -17,7 +17,7 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN 
 const videoCatalog = {
     'vivo-proximo': { 
         title: 'Transmisión EN VIVO - Primera División', 
-        price: 10, 
+        price: 3500, 
         youtubeLink: 'https://youtube.com/live/XXXXXXX' 
     },
     'sub14-regional': { 
@@ -71,15 +71,13 @@ app.post('/crear-pago', async (req, res) => {
                     video_id: videoId,
                     email_comprador: emailComprador
                 },
-                // Redirección automática ACTIVADA usando tu link de Ngrok
                 back_urls: {
-                    success: `https://residue-sierra-kitchen.ngrok-free.dev/exito?videoId=${videoId}`,
-                    failure: "https://residue-sierra-kitchen.ngrok-free.dev/",
-                    pending: "https://residue-sierra-kitchen.ngrok-free.dev/"
+                    success: `https://zoom-del-valle.onrender.com/exito?videoId=${videoId}`,
+                    failure: "https://zoom-del-valle.onrender.com/",
+                    pending: "https://zoom-del-valle.onrender.com/"
                 },
                 auto_return: 'approved',
-                // Webhook conectado para que Mercado Pago avise de la compra
-                notification_url: 'https://residue-sierra-kitchen.ngrok-free.dev/webhook' 
+                notification_url: 'https://zoom-del-valle.onrender.com/webhook' 
             }
         });
 
@@ -159,7 +157,7 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor de Zoom del Valle corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor de Zoom del Valle corriendo en puerto ${PORT}`);
 });
