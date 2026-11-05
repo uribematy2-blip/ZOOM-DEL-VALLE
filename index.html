@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoom del Valle | Transmisiones y Archivo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="p-4 bg-gray-800 border-b border-gray-700 text-center">
+        <h1 class="text-2xl font-bold text-blue-400 tracking-wider">ZOOM DEL VALLE</h1>
+        <p class="text-xs text-gray-400">Transmisiones en vivo & Análisis Deportivo</p>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-6 flex-grow w-full">
+
+        <!-- Destacado: Próximo Vivo -->
+        <section class="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg text-center mb-10">
+            <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider animate-pulse">En Vivo Próximamente</span>
+            <h2 class="text-2xl font-bold mt-4">Los Perales vs. Rival</h2>
+            <p class="text-gray-400 text-sm mt-1">Transmisión en HD - Relatos y repeticiones</p>
+            <div class="mt-4 text-3xl font-bold text-green-400">$3.500</div>
+            <button onclick="comprar('vivo-proximo')" class="mt-4 bg-green-500 hover:bg-green-400 text-black font-bold px-8 py-3 rounded-lg text-lg transition-all transform hover:scale-105">
+                Comprar Acceso al Vivo
+            </button>
+        </section>
+
+        <!-- Catálogo de Grabados -->
+        <section>
+            <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">📼 Partidos Anteriores</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Tarjeta Partido 1 -->
+                <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden flex flex-col justify-between">
+                    <div class="p-5">
+                        <h4 class="font-bold text-lg">Sub 14 - Campeonato Regional</h4>
+                        <p class="text-sm text-gray-400 mt-1">Partido completo en HD.</p>
+                    </div>
+                    <div class="p-5 bg-gray-850 border-t border-gray-700 flex justify-between items-center">
+                        <span class="text-xl font-bold text-green-400">$2.000</span>
+                        <button onclick="comprar('sub14-regional')" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded font-bold text-sm">
+                            Comprar
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="p-4 bg-gray-800 border-t border-gray-700 text-center text-xs text-gray-500">
+        © Zoom del Valle - Todos los derechos reservados.
+    </footer>
+
+    <script>
+        async function comprar(videoId) {
+            const email = prompt("Ingresá tu correo electrónico donde te llegará la confirmación:");
+            if (!email || !email.includes('@')) {
+                alert("Por favor ingresá un correo válido.");
+                return;
+            }
+
+            try {
+                const res = await fetch('/crear-pago', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ videoId, emailComprador: email })
+                });
+
+                const data = await res.json();
+                if (data.init_point) {
+                    window.location.href = data.init_point;
+                } else {
+                    alert("Error al iniciar el pago.");
+                }
+            } catch (err) {
+                alert("Error de conexión con el servidor.");
+            }
+        }
+    </script>
+</body>
+</html>
