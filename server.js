@@ -16,9 +16,9 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN 
 // Catálogo de videos (Podés cambiar los precios y links de YouTube aquí)
 const videoCatalog = {
     'vivo-proximo': { 
-        title: 'Transmisión EN VIVO - Primera División', 
-        price: 3500, 
-        youtubeLink: 'https://youtube.com/live/XXXXXXX' 
+        title: 'PERALES VS MONTE HERMOSO - SUB 19 CAC', 
+        price: 35, 
+        youtubeLink: 'https://youtu.be/P0N2TelKRVI' 
     },
     'sub14-regional': { 
         title: 'Partido Sub 14 - Campeonato Regional', 
