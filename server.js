@@ -12,7 +12,7 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN 
 
 // --- CONEXIÓN A TU GOOGLE SHEET ---
 let videoCatalog = {}; 
-// PEGÁ ACÁ TU LINK DE GOOGLE SHEETS (EL QUE TERMINA EN output=tsv)
+// https://docs.google.com/spreadsheets/d/e/2PACX-1vTJALrBXYnmCq0BVhYru_p7ECbR27pfOdhFwXCy71RPghoXpz9v_7snm9ie-umb_rZlfoaWwj1aGgNK/pub?gid=0&single=true&output=tsv
 const SHEET_URL = 'ACA_PEGA_EL_LINK_LARGO_DEL_PASO_2';
 
 async function actualizarCatalogo() {
