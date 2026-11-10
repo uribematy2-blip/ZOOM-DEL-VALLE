@@ -13,64 +13,56 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN 
 // --- CONEXIÓN A GOOGLE SHEET ---
 let videoCatalog = {}; 
 
-// ¡PEGÁ TU LINK DE GOOGLE SHEETS ACÁ ADENTRO (EL QUE TERMINA EN output=tsv)!
-const SHEET_URL = 'ACA_PEGA_EL_LINK_LARGO_TSV';
+// ¡PEGÁ TU LINK TSV DE GOOGLE SHEETS ACÁ ADENTRO!
+const SHEET_URL = https://docs.google.com/spreadsheets/d/e/2PACX-1vTJALrBXYnmCq0BVhYru_p7ECbR27pfOdhFwXCy71RPghoXpz9v_7snm9ie-umb_rZlfoaWwj1aGgNK/pub?gid=0&single=true&output=tsv;
 
 async function actualizarCatalogo() {
     try {
         const res = await fetch(SHEET_URL);
         const text = await res.text();
-        
-        // Separa las filas soportando todos los formatos de línea (\r\n y \n)
         const lineas = text.split(/\r?\n/);
         const nuevoCatalogo = {};
 
-        // Empezamos desde la línea 1 para saltar los encabezados (id_interno, title, price, youtubeId, categoria)
+        // Empezamos desde la línea 1 para saltar los encabezados
         for (let i = 1; i < lineas.length; i++) {
             if (!lineas[i].trim()) continue; 
             
-            const [id, title, price, youtubeId, categoria] = lineas[i].split('\t');
+            // Leemos las 6 columnas de tu Excel de hockey
+            const [id, title, price, youtubeId, torneo, categoria] = lineas[i].split('\t');
 
             if (id && title && price && youtubeId) {
                 nuevoCatalogo[id.trim()] = {
                     title: title.trim(),
                     price: Number(price.trim()),
                     youtubeId: youtubeId.trim(),
-                    categoria: categoria ? categoria.trim().toLowerCase() : 'resumen'
+                    torneo: torneo ? torneo.trim() : 'Amistoso',
+                    categoria: categoria ? categoria.trim().toUpperCase() : 'GENERAL'
                 };
             }
         }
         
-        // Si logró leer videos del Excel, los usa. Si el Excel está vacío, usa tu video de prueba.
         if (Object.keys(nuevoCatalogo).length > 0) {
             videoCatalog = nuevoCatalogo;
+            console.log("Catálogo actualizado desde Google Sheets.");
         } else {
+            // Video de emergencia si el Excel está vacío
             videoCatalog = {
-                'video-prueba': { title: 'Prueba: Video Zoom del Valle', price: 1500, youtubeId: 'GFqJqDvKM-o', categoria: 'resumen' }
+                'video-prueba': { title: 'Prueba: Los Perales', price: 1500, youtubeId: 'GFqJqDvKM-o', torneo: 'Superliga NQN', categoria: 'PRIMERA DAMAS' }
             };
         }
     } catch (error) {
-        console.error("Error al leer Google Sheets, activando video de emergencia:", error);
-        videoCatalog = {
-            'video-prueba': { title: 'Prueba: Video Zoom del Valle', price: 1500, youtubeId: 'GFqJqDvKM-o', categoria: 'resumen' }
-        };
+        console.error("Error al leer Google Sheets:", error);
     }
 }
 
-// Ejecuta la lectura inicial
 actualizarCatalogo();
 setInterval(actualizarCatalogo, 5 * 60 * 1000);
 
-// --- CORREO ---
 const transporter = nodemailer.createTransport({
     service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
 });
 
-// --- RUTAS ---
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.get('/api/videos', (req, res) => {
@@ -80,6 +72,7 @@ app.get('/api/videos', (req, res) => {
             id: key,
             title: videoCatalog[key].title,
             price: videoCatalog[key].price,
+            torneo: videoCatalog[key].torneo,
             categoria: videoCatalog[key].categoria,
             thumbnail: `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/hqdefault.jpg`
         };
@@ -87,7 +80,6 @@ app.get('/api/videos', (req, res) => {
     res.json(catalogSafe);
 });
 
-// Cobro
 app.post('/crear-pago', async (req, res) => {
     try {
         const { videoId, emailComprador } = req.body;
@@ -115,7 +107,6 @@ app.post('/crear-pago', async (req, res) => {
     }
 });
 
-// Éxito
 app.get('/exito', (req, res) => {
     const videoId = req.query.videoId;
     const video = videoCatalog[videoId];
@@ -142,13 +133,10 @@ app.get('/exito', (req, res) => {
     `);
 });
 
-// Webhook
 app.post('/webhook', async (req, res) => {
     const { query } = req;
-    const topic = query.topic || query.type;
     res.sendStatus(200);
-
-    if (topic === 'payment') {
+    if ((query.topic || query.type) === 'payment') {
         try {
             const payment = new Payment(client);
             const paymentInfo = await payment.get({ id: query['data.id'] || query.id });
