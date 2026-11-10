@@ -14,8 +14,7 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN 
 let videoCatalog = {}; 
 
 // ¡PEGÁ TU LINK TSV DE GOOGLE SHEETS ACÁ ADENTRO!
-const SHEET_URL = https://docs.google.com/spreadsheets/d/e/2PACX-1vTJALrBXYnmCq0BVhYru_p7ECbR27pfOdhFwXCy71RPghoXpz9v_7snm9ie-umb_rZlfoaWwj1aGgNK/pub?gid=0&single=true&output=tsv;
-
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1M9cjtuKszPsDyuYUln61J3_x0cwlduEyqeXVpWyHG3A/export?format=tsv';
 async function actualizarCatalogo() {
     try {
         const res = await fetch(SHEET_URL);
