@@ -11,13 +11,14 @@ app.use(express.static(__dirname));
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 
 // --- CATÁLOGO DE VIDEOS DE ZOOM DEL VALLE ---
-// Si querés agregar más a futuro, solo copiás una línea, le cambiás el número (6, 7, etc) y ponés el nuevo código de YouTube.
 const videoCatalog = {
     '1': { title: 'Los Perales vs Sporting', price: 80000, youtubeId: 'GFqJqDvKM-o', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
     '2': { title: 'PERALES VS MONTE HERMOSO', price: 80000, youtubeId: 'P0N2TelKRVI', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
     '3': { title: 'PERALES VS SAN JUAN', price: 80000, youtubeId: 'SnaUfNxgGBA', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
     '4': { title: 'LOS PERALES VS PARANA', price: 80000, youtubeId: 'yy0KMkbQ6YQ', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
-    '5': { title: 'SAN JUAN RUGBY VS PARANA ROWIN', price: 80000, youtubeId: 'COM9N_tu-1Q', torneo: 'CAC B', categoria: 'DAMAS SUB 19' }
+    '5': { title: 'SAN JUAN RUGBY VS PARANA ROWIN', price: 80000, youtubeId: 'COM9N_tu-1Q', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    // Acá está tu nuevo partido agregado:
+    '6': { title: 'RIO NEGRO VS CATAMARCA', price: 100, youtubeId: '3Kr6d9eb68k', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' }
 };
 
 // --- CONFIGURACIÓN DE CORREO ---
@@ -38,7 +39,7 @@ app.get('/api/videos', (req, res) => {
             price: videoCatalog[key].price,
             torneo: videoCatalog[key].torneo,
             categoria: videoCatalog[key].categoria,
-            thumbnail: `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/hqdefault.jpg` // Genera la foto sola
+            thumbnail: `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/hqdefault.jpg`
         };
     }
     res.json(catalogSafe);
