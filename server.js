@@ -10,39 +10,54 @@ app.use(express.static(__dirname));
 
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 
-// --- CATÁLOGO DE VIDEOS Y SERVICIOS DE ZOOM DEL VALLE ---
+// --- CATÁLOGO COMPLETO DE ZOOM DEL VALLE ---
 const videoCatalog = {
-    '1': { title: 'FINAL - RIO NEGRO VS MISIONES - ARG SELECCIONES SUB 16 DAMAS C', price: 10000, youtubeId: 'qIrsaljGXjc', torneo: 'SELECCIONES', categoria: 'SUB 16' },
-    '2': { title: 'MISIONES VS CENTRO BUENOS AIRES - selecciones sub 16 Damas "C"', price: 10000, youtubeId: 'G0O88KHDYZc', torneo: 'SELECCIONES', categoria: 'SUB 16' },
-    '3': { title: 'RIO NEGRO VS MISIONES - SELECCIONADOS SUB 16 DAMAS "c"', price: 10000, youtubeId: 'FY1lLgdLkoE', torneo: 'SELECCIONES', categoria: 'SUB 16' },
-    '4': { title: 'RIO NEGRO VS NEUQUEN - SELECCIONADOS SUB 16 DAMAS "C"', price: 10000, youtubeId: 'KPWNrBFnVTQ', torneo: 'SELECCIONES', categoria: 'SUB 16' },
-    '5': { title: 'Noroeste VS SAN LUIS.MP4 SELECCIONADOS DAMAS SUB 16 "C"', price: 10000, youtubeId: '5HteCJyadlg', torneo: 'SELECCIONES', categoria: 'SUB 16' },
-    '6': { title: 'CAI - ALTA BARDA - DAMAS MAYORES - INTEGRACION', price: 10000, youtubeId: 'x8FvakrUwiA', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
-    '7': { title: 'PERALES - MRC SEMI.MP4', price: 10000, youtubeId: 'nWFkRjlGJTA', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
-    '8': { title: 'CABALLEROS : PERALES ALTA BARADA SEMI.MP4', price: 10000, youtubeId: '3eoRkkuNzQ4', torneo: 'INTEGRACION', categoria: 'CABALLEROS' },
-    '9': { title: 'RIO NEGRO VS UDC (SUB 16) SEMIFINALES SELECCIONADO SUB 16 DAMAS "C"', price: 10000, youtubeId: 'tY_MhMCnJEU', torneo: 'SELECCIONES', categoria: 'SUB 16' },
-    '10': { title: 'CIRCULO - CIPO CABALLEROS.mp4', price: 10000, youtubeId: 'zpJ_Ileqzsk', torneo: 'RIONEGRINO', categoria: 'CABALLEROS' },
-    '11': { title: 'PERALES ALTA BARDA FINAL SUB 16.mp4', price: 10000, youtubeId: 'gGSAVeszFFQ', torneo: 'INTEGRACION', categoria: 'SUB 16' },
-    '12': { title: 'CAI - NQN RUGBY (INTER).mp4', price: 10000, youtubeId: 'y7rnqAQFEnY', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
-    '13': { title: 'SUB 16 - DAMAS RIO NEGRO VS CENTRO.MP4', price: 10000, youtubeId: 'dJ-MZJhcOc4', torneo: 'SELECCIONES', categoria: 'SUB 16' },
-    '14': { title: 'MRC VS ALTA BARDA (3ER Y 4TO 1ERA DAMAS', price: 10000, youtubeId: '6iAjck0q2R0', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
-    '15': { title: 'PERALES - SAN JORGE (FINAL CABALLEROS', price: 10000, youtubeId: 'A-WKbGwF72w', torneo: 'INTEGRACION', categoria: 'CABALLEROS' },
-    '16': { title: 'PERALES - NQN RUGBY (SUB 19) .mp4', price: 10000, youtubeId: 'PtqjuSe8c6Q', torneo: 'INTEGRACION', categoria: 'DAMAS SUB 19' },
-    '17': { title: 'PERALES - CAI (Final damas).mp4', price: 10000, youtubeId: 'yTXC42oKb5g', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
-    '18': { title: 'MRC VS ALTA BARDA (FINAL EXTRA SUB14)', price: 10000, youtubeId: 'BFKmJ_KW5E0', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
-    '19': { title: '16102026 - RIO NEGRO VS MARDEL - CABALLEROS SELECCIONES B', price: 50000, youtubeId: 'eQ_-RFNQBe0', torneo: 'SELECCIONES', categoria: 'CABALLEROS' },
-    '20': { title: '16102026 - RIO NEGRO VS SUR DE CORDOBA - ARG SELE DAMAS "B"', price: 50000, youtubeId: '7_zOlfEFL4I', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
-    '21': { title: '15102026 - RIO NEGRO VS LA PAMPA (DAMAS 2DO,3RO Y 4TO CUARTO)', price: 50000, youtubeId: 'W5PS_A5ZmlU', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
-    '22': { title: '18102026 - RIO NEGRO VS SAN LUIS - 3RO/4TO DAMAS', price: 50000, youtubeId: 'DWVxdau3hrg', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
-    '23': { title: '15102026 - LA PAMPA VS CORRENTINA - CAB "B"', price: 50000, youtubeId: 'vzB98phCJEg', torneo: 'SELECCIONES', categoria: 'CABALLEROS' },
-    '24': { title: '17102026 - LA PAMPA VS SAN LUIS - SEMI DAMAS', price: 50000, youtubeId: 'nTv7HOhLy_U', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
-    '25': { title: '17102026 RIO NEGRO VS SANRAFAEL SEMI DAMAS', price: 50000, youtubeId: '91kpWJvCnoE', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
-    '26': { title: '16102026 - RIO NEGRO VS SAN LUIS - CAB "B"', price: 50000, youtubeId: 'Y7XQCTzX2gI', torneo: 'SELECCIONES', categoria: 'CABALLEROS' },
-    '27': { title: '14102026 - SAN RAFAEL VS CHUBUT. SELE DAMAS MAYOR', price: 50000, youtubeId: 'FYqGCC26XM4', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
-    '28': { title: '15102026 - MAR DEL PLATA VS SANLUISEÑA - SELE CABALLEROS', price: 50000, youtubeId: '-Sh3hegJH-E', torneo: 'SELECCIONES', categoria: 'CABALLEROS' },
-    '29': { title: '15102026 -LA PAMPA VS SUR CORDOBA - SELECCIONADO DAMAS MAYOR SAN RAFAEL', price: 50000, youtubeId: 'XJyBJf55il8', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
+    '1': { title: 'Los Perales vs Sporting', price: 80000, youtubeId: 'GFqJqDvKM-o', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    '2': { title: 'PERALES VS MONTE HERMOSO', price: 80000, youtubeId: 'P0N2TelKRVI', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    '3': { title: 'PERALES VS SAN JUAN', price: 80000, youtubeId: 'SnaUfNxgGBA', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    '4': { title: 'LOS PERALES VS PARANA', price: 80000, youtubeId: 'yy0KMkbQ6YQ', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    '5': { title: 'SAN JUAN RUGBY VS PARANA ROWIN', price: 80000, youtubeId: 'COM9N_tu-1Q', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    '6': { title: 'RIO NEGRO VS CATAMARCA', price: 1, youtubeId: '3Kr6d9eb68k', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
+    '8': { title: 'FINAL - RIO NEGRO VS MISIONES - ARG SELECCIONES SUB 16 DAMAS C', price: 10000, youtubeId: 'qIrsaljGXjc', torneo: 'SELECCIONES', categoria: 'SUB 16' },
+    '9': { title: 'MISIONES VS CENTRO BUENOS AIRES - selecciones sub 16 Damas "C"', price: 10000, youtubeId: 'G0O88KHDYZc', torneo: 'SELECCIONES', categoria: 'SUB 16' },
+    '10': { title: 'RIO NEGRO VS MISIONES - SELECCIONADOS SUB 16 DAMAS "c"', price: 10000, youtubeId: 'FY1lLgdLkoE', torneo: 'SELECCIONES', categoria: 'SUB 16' },
+    '11': { title: 'RIO NEGRO VS NEUQUEN - SELECCIONADOS SUB 16 DAMAS "C"', price: 10000, youtubeId: 'KPWNrBFnVTQ', torneo: 'SELECCIONES', categoria: 'SUB 16' },
+    '12': { title: 'Noroeste VS SAN LUIS.MP4 SELECCIONADOS DAMAS SUB 16 "C"', price: 10000, youtubeId: '5HteCJyadlg', torneo: 'SELECCIONES', categoria: 'SUB 16' },
+    '13': { title: 'CAI - ALTA BARDA - DAMAS MAYORES - INTEGRACION', price: 10000, youtubeId: 'x8FvakrUwiA', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
+    '14': { title: 'PERALES - MRC SEMI.MP4', price: 10000, youtubeId: 'nWFkRjlGJTA', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
+    '15': { title: 'CABALLEROS : PERALES ALTA BARADA SEMI.MP4', price: 10000, youtubeId: '3eoRkkuNzQ4', torneo: 'INTEGRACION', categoria: 'CABALLEROS' },
+    '16': { title: 'RIO NEGRO VS UDC (SUB 16) SEMIFINALES SELECCIONADO SUB 16 DAMAS "C"', price: 10000, youtubeId: 'tY_MhMCnJEU', torneo: 'SELECCIONES', categoria: 'CABALLEROS' },
+    '17': { title: 'CIRCULO - CIPO CABALLEROS.mp4', price: 10000, youtubeId: 'zpJ_Ileqzsk', torneo: 'RIONEGRINO', categoria: 'CABALLEROS' },
+    '18': { title: 'PERALES ALTA BARDA FINAL SUB 16.mp4', price: 10000, youtubeId: 'gGSAVeszFFQ', torneo: 'INTEGRACION', categoria: 'SUB 16' },
+    '19': { title: 'CAI - NQN RUGBY (INTER).mp4', price: 10000, youtubeId: 'y7rnqAQFEnY', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
+    '20': { title: 'SUB 16 - DAMAS RIO NEGRO VS CENTRO.MP4', price: 10000, youtubeId: 'dJ-MZJhcOc4', torneo: 'SELECCIONES', categoria: 'SUB 16' },
+    '21': { title: 'MRC VS ALTA BARDA (3ER Y 4TO 1ERA DAMAS', price: 10000, youtubeId: '6iAjck0q2R0', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
+    '22': { title: 'PERALES - SAN JORGE (FINAL CABALLEROS', price: 10000, youtubeId: 'A-WKbGwF72w', torneo: 'INTEGRACION', categoria: 'CABALLEROS' },
+    '23': { title: 'PERALES - NQN RUGBY (SUB 19) .mp4', price: 10000, youtubeId: 'PtqjuSe8c6Q', torneo: 'INTEGRACION', categoria: 'DAMAS SUB 19' },
+    '24': { title: 'PERALES - CAI (Final damas).mp4', price: 10000, youtubeId: 'yTXC42oKb5g', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
+    '25': { title: 'MRC VS ALTA BARDA (FINAL EXTRA SUB14)', price: 10000, youtubeId: 'BFKmJ_KW5E0', torneo: 'INTEGRACION', categoria: 'DAMAS MAYORES' },
+    '26': { title: '16102026 - RIO NEGRO VS MARDEL - CABALLEROS SELECCIONES B', price: 50000, youtubeId: 'eQ_-RFNQBe0', torneo: 'SELECCIONES', categoria: 'CABALLEROS' },
+    '27': { title: '16102026 - RIO NEGRO VS SUR DE CORDOBA - ARG SELE DAMAS "B"', price: 50000, youtubeId: '7_zOlfEFL4I', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
+    '28': { title: '15102026 - RIO NEGRO VS LA PAMPA (DAMAS 2DO,3RO Y 4TO CUARTO)', price: 50000, youtubeId: 'W5PS_A5ZmlU', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
+    '29': { title: '18102026 - RIO NEGRO VS SAN LUIS - 3RO/4TO DAMAS', price: 50000, youtubeId: 'DWVxdau3hrg', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
+    '30': { title: '15102026 - LA PAMPA VS CORRENTINA - CAB "B"', price: 50000, youtubeId: 'vzB98phCJEg', torneo: 'SELECCIONES', categoria: 'CABALLEROS' },
+    '31': { title: '17102026 - LA PAMPA VS SAN LUIS - SEMI DAMAS', price: 50000, youtubeId: 'nTv7HOhLy_U', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
+    '32': { title: '17102026 RIO NEGRO VS SANRAFAEL SEMI DAMAS', price: 50000, youtubeId: '91kpWJvCnoE', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
+    '33': { title: '16102026 - RIO NEGRO VS SAN LUIS - CAB "B"', price: 50000, youtubeId: 'Y7XQCTzX2gI', torneo: 'SELECCIONES', categoria: 'CABALLEROS' },
+    '34': { title: '14102026 - SAN RAFAEL VS CHUBUT. SELE DAMAS MAYOR', price: 50000, youtubeId: 'FYqGCC26XM4', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
+    '35': { title: '15102026 - MAR DEL PLATA VS SANLUISEÑA - SELE CABALLEROS', price: 50000, youtubeId: '-Sh3hegJH-E', torneo: 'SELECCIONES', categoria: 'CABALLEROS' },
+    '36': { title: '15102026 -LA PAMPA VS SUR CORDOBA - SELECCIONADO DAMAS MAYOR SAN RAFAEL', price: 50000, youtubeId: 'XJyBJf55il8', torneo: 'SELECCIONES', categoria: 'DAMAS MAYORES' },
+    '37': { title: '29102026 SPORTING VS BANCO MENDOZA CAC B', price: 80000, youtubeId: '-fNEweFxUYQ', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    '38': { title: '10102026 - PRIMERA DAMAS - PERALES VS ROCA. (F.2 RIONEGRINO)', price: 50000, youtubeId: 'QkkCepYZ6B0', torneo: 'RIONEGRINO', categoria: 'DAMAS MAYORES' },
+    '39': { title: '03102026 - NAUTICO VS ROCA - CRC A S16', price: 50000, youtubeId: 'mS9-Vk3aZrc', torneo: 'CRC A', categoria: 'SUB 16' },
+    '40': { title: '03102026 LA BARRANCA VS PERALES CRC', price: 50000, youtubeId: 'EJ3lf4PVBwQ', torneo: 'CRC A', categoria: 'SUB 16' },
+    '41': { title: '03102026 - SANTA ROSA VS CHENQUE - CRC B S16', price: 40000, youtubeId: 'Age8DndSUb8', torneo: 'CRC B', categoria: 'SUB 16' },
+    '42': { title: '02102026 MARABUNTA VS LA BARRANCA CRC A S16', price: 50000, youtubeId: 'Rjz48EyPL8E', torneo: 'CRC A', categoria: 'SUB 16' },
+    '43': { title: '01102026 - MRC A VS NAUTICO - CRC A S16', price: 50000, youtubeId: 'oHFZIUtU2MU', torneo: 'CRC A', categoria: 'SUB 16' },
+    '44': { title: '01102026 - CALAFATE VS ESTUDIANTES STA ROSA- CRC B S16', price: 40000, youtubeId: 'F4163Aq8ek4', torneo: 'CRC B', categoria: 'SUB 16' },
+    '45': { title: '01102026 - ALTA BARDA VS SANTA ROSA - CRC B S16', price: 40000, youtubeId: 'FWcWQuR6dy4', torneo: 'CRC B', categoria: 'SUB 16' },
     
-    // --- SERVICIO DE ANÁLISIS DE VIDEO ---
+    // --- SERVICIO DE ANÁLISIS DE VIDEO (CON TU LOGO OFICIAL) ---
     'servicio-analisis': { 
         title: 'Análisis y Recorte de Jugadas Claves', 
         price: 20000, 
@@ -63,13 +78,14 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/api/videos', (req, res) => {
     const catalogSafe = {};
     for (const key in videoCatalog) {
+        let thumb = videoCatalog[key].customThumbnail || `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/hqdefault.jpg`;
         catalogSafe[key] = {
             id: key,
             title: videoCatalog[key].title,
             price: videoCatalog[key].price,
             torneo: videoCatalog[key].torneo,
             categoria: videoCatalog[key].categoria,
-            thumbnail: videoCatalog[key].customThumbnail || `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/hqdefault.jpg`
+            thumbnail: thumb
         };
     }
     res.json(catalogSafe);
@@ -176,7 +192,6 @@ app.post('/webhook', async (req, res) => {
                 const { video_id, email_comprador } = paymentInfo.metadata;
                 const video = videoCatalog[video_id];
                 if (video && email_comprador) {
-                    
                     let asunto = '';
                     let cuerpoMail = '';
 
