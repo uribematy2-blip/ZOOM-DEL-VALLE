@@ -12,8 +12,8 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN 
 
 let videoCatalog = {}; 
 
-// LINK DIRECTO A TU EXCEL (Ya configurado)
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1M9cjtuKszPsDyuYUln61J3_x0cwlduEyqeXVpWyHG3A/export?format=tsv';
+// ¡TU LINK OFICIAL PUBLICADO (A PRUEBA DE BLOQUEOS)!
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJALrBXYnmCq0BVhYru_p7ECbR27pfOdhFwXCy71RPghoXpz9v_7snm9ie-umb_rZlfoaWwj1aGgNK/pub?gid=0&single=true&output=tsv';
 
 async function actualizarCatalogo() {
     try {
@@ -28,10 +28,10 @@ async function actualizarCatalogo() {
             
             let [id, title, price, youtubeId, torneo, categoria] = lineas[i].split('\t');
 
-            // 1. INTELIGENCIA: Auto-completar ID si la celda de la Columna A quedó vacía
+            // INTELIGENCIA: Auto-completar ID si te olvidás de ponerlo
             let idFinal = (id && id.trim() !== '') ? id.trim() : `video-auto-${i}`;
             
-            // 2. INTELIGENCIA: Auto-recortar link de YouTube si pegaste la URL completa
+            // INTELIGENCIA: Auto-recortar link de YouTube si pegaste la URL completa
             let ytFinal = youtubeId ? youtubeId.trim() : '';
             if (ytFinal.includes('youtu.be/')) {
                 ytFinal = ytFinal.split('youtu.be/')[1].split(/[?#]/)[0];
@@ -39,7 +39,6 @@ async function actualizarCatalogo() {
                 ytFinal = ytFinal.split('v=')[1]?.split(/[&?#]/)[0] || ytFinal;
             }
 
-            // Si hay título, precio y video, lo guardamos en la página
             if (title && price && ytFinal) {
                 nuevoCatalogo[idFinal] = {
                     title: title.trim(),
@@ -55,7 +54,6 @@ async function actualizarCatalogo() {
             videoCatalog = nuevoCatalogo;
             console.log("Catálogo actualizado desde Google Sheets.");
         } else {
-            console.log("Excel vacío o mal formateado. Usando video de prueba.");
             videoCatalog = {
                 'video-prueba': { title: 'Prueba: Los Perales', price: 1500, youtubeId: 'GFqJqDvKM-o', torneo: 'Superliga NQN', categoria: 'PRIMERA DAMAS' }
             };
