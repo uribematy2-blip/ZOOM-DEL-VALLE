@@ -10,68 +10,47 @@ app.use(express.static(__dirname));
 
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 
-// --- 1. CONFIGURACIÓN DEL SISTEMA HÍBRIDO ---
+// --- CONEXIÓN A TU GOOGLE SHEET ---
+let videoCatalog = {}; 
+// PEGÁ ACÁ TU LINK DE GOOGLE SHEETS (EL QUE TERMINA EN output=tsv)
+const SHEET_URL = 'ACA_PEGA_EL_LINK_LARGO_DEL_PASO_2';
 
-// A. Configuración de automatización de YouTube (Acá ponemos el precio de los videos que se cargan solos)
-const PRECIO_FIJO_AUTOMATICO = 1500; 
-const CHANNEL_ID = 'UCMkw40MumgaOJJiA9eCE6gw'; // Tu ID oficial de @ZOOMDELVALLE
-
-// B. Catálogo Manual (Acá agregarás a mano los partidos EN VIVO o finales especiales más adelante)
-const manualCatalog = {
-    // Te dejo uno de ejemplo apagado. Cuando lo necesites, lo modificás.
-    'vivo-ejemplo': { 
-        title: 'EN VIVO: Gran Final (Ejemplo)', 
-        price: 3500, 
-        youtubeId: 'ID_DE_YOUTUBE_ACA', // ej: qQ7cQ-V8h1M
-        categoria: 'vivo',
-        club: 'Los Perales'
-    }
-};
-
-// Memoria principal (mezcla los manuales y los automáticos de tu canal)
-let globalCatalog = { ...manualCatalog };
-
-// --- 2. EL MOTOR QUE "CHUPA" TUS VIDEOS SOLOS ---
-async function actualizarCatalogoAutomatico() {
+async function actualizarCatalogo() {
     try {
-        const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
-        const response = await fetch(rssUrl);
-        const xml = await response.text();
-        
-        // Cortamos el texto para separar cada video
-        const entries = xml.split('<entry>');
-        entries.shift(); // Descartamos la información general del canal
+        const res = await fetch(SHEET_URL);
+        const text = await res.text();
+        const lineas = text.split('\n');
+        const nuevoCatalogo = {};
 
-        entries.forEach(entry => {
-            // Buscamos el ID del video y el Título oficial que le pusiste en YouTube
-            const videoIdMatch = entry.match(/<yt:videoId>(.*?)<\/yt:videoId>/);
-            const titleMatch = entry.match(/<title>(.*?)<\/title>/);
+        // Empezamos desde la línea 1 para saltar los encabezados
+        for (let i = 1; i < lineas.length; i++) {
+            if (!lineas[i].trim()) continue; // Salta líneas vacías
             
-            if (videoIdMatch && titleMatch) {
-                const videoId = videoIdMatch[1];
-                const title = titleMatch[1];
-                
-                // Lo inyectamos a tu página web listo para cobrar
-                globalCatalog[`auto-${videoId}`] = {
-                    title: title,
-                    price: PRECIO_FIJO_AUTOMATICO,
-                    youtubeId: videoId,
-                    categoria: 'resumen', // Van directo a la fila de Compactos
-                    club: 'Todos'
+            // Separamos las columnas por la tabulación del TSV
+            const [id, title, price, youtubeId, categoria, club] = lineas[i].split('\t');
+
+            if (id && title && price && youtubeId) {
+                nuevoCatalogo[id.trim()] = {
+                    title: title.trim(),
+                    price: Number(price.trim()),
+                    youtubeId: youtubeId.trim(),
+                    categoria: categoria ? categoria.trim() : 'resumen',
+                    club: club ? club.trim() : 'Todos'
                 };
             }
-        });
-        console.log("Catálogo actualizado desde YouTube exitosamente.");
+        }
+        videoCatalog = nuevoCatalogo;
+        console.log("¡Catálogo sincronizado con Google Sheets con éxito!");
     } catch (error) {
-        console.error("Error leyendo tu canal de YouTube:", error);
+        console.error("Error al leer el Google Sheet:", error);
     }
 }
 
-// Ejecutamos la búsqueda al arrancar, y luego cada 1 hora para no saturar
-actualizarCatalogoAutomatico();
-setInterval(actualizarCatalogoAutomatico, 3600000); 
+// El servidor lee tu Excel apenas arranca, y luego vuelve a leerlo cada 5 minutos
+actualizarCatalogo();
+setInterval(actualizarCatalogo, 5 * 60 * 1000);
 
-// --- 3. CONFIGURACIÓN DE CORREO ---
+// --- CORREO ---
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -80,34 +59,31 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// --- 4. RUTAS DE LA PÁGINA ---
+// --- RUTAS ---
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.get('/api/videos', (req, res) => {
     const catalogSafe = {};
-    for (const key in globalCatalog) {
-        // Ignoramos el vivo de ejemplo si no le pusiste un ID real
-        if(key === 'vivo-ejemplo' && globalCatalog[key].youtubeId === 'ID_DE_YOUTUBE_ACA') continue;
-
+    for (const key in videoCatalog) {
         catalogSafe[key] = {
             id: key,
-            title: globalCatalog[key].title,
-            price: globalCatalog[key].price,
-            categoria: globalCatalog[key].categoria,
-            club: globalCatalog[key].club,
-            thumbnail: `https://img.youtube.com/vi/${globalCatalog[key].youtubeId}/hqdefault.jpg`
+            title: videoCatalog[key].title,
+            price: videoCatalog[key].price,
+            categoria: videoCatalog[key].categoria,
+            club: videoCatalog[key].club,
+            thumbnail: `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/hqdefault.jpg`
         };
     }
     res.json(catalogSafe);
 });
 
-// Proceso de Cobro
+// Cobro
 app.post('/crear-pago', async (req, res) => {
     try {
         const { videoId, emailComprador } = req.body;
-        const video = globalCatalog[videoId]; 
+        const video = videoCatalog[videoId]; 
         
-        if (!video) return res.status(404).json({ error: 'Video no encontrado' });
+        if (!video) return res.status(404).json({ error: 'Video no encontrado en el catálogo' });
 
         const preference = new Preference(client);
         const response = await preference.create({
@@ -126,15 +102,15 @@ app.post('/crear-pago', async (req, res) => {
         });
         res.json({ init_point: response.init_point });
     } catch (error) {
-        res.status(500).json({ error: 'Error al generar compra' });
+        res.status(500).json({ error: 'Error interno de cobro' });
     }
 });
 
-// Pantalla de Éxito
+// Éxito
 app.get('/exito', (req, res) => {
     const videoId = req.query.videoId;
-    const video = globalCatalog[videoId];
-    if (!video) return res.send('<h1>¡Gracias por tu compra! Te enviamos el link por mail.</h1>');
+    const video = videoCatalog[videoId];
+    if (!video) return res.send('<h1>¡Gracias por tu compra! Revisá tu mail.</h1>');
 
     const youtubeLink = `https://youtube.com/watch?v=${video.youtubeId}`;
 
@@ -151,14 +127,14 @@ app.get('/exito', (req, res) => {
                 <div class="text-green-400 text-5xl mb-4">✓</div>
                 <h1 class="text-3xl font-bold mb-2">¡Pago Aprobado!</h1>
                 <p class="mb-6">Acceso liberado a:<br><strong>${video.title}</strong></p>
-                <a href="${youtubeLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-lg text-lg font-bold block transition transform hover:scale-105">▶ IR AL PARTIDO EN YOUTUBE</a>
+                <a href="${youtubeLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-lg text-lg font-bold block">▶ IR AL PARTIDO EN YOUTUBE</a>
             </div>
         </body>
         </html>
     `);
 });
 
-// Webhook (Acá se envía el mail automático)
+// Webhook
 app.post('/webhook', async (req, res) => {
     const { query } = req;
     const topic = query.topic || query.type;
@@ -171,7 +147,7 @@ app.post('/webhook', async (req, res) => {
 
             if (paymentInfo.status === 'approved') {
                 const { video_id, email_comprador } = paymentInfo.metadata;
-                const video = globalCatalog[video_id];
+                const video = videoCatalog[video_id];
 
                 if (video && email_comprador) {
                     const youtubeLink = `https://youtube.com/watch?v=${video.youtubeId}`;
@@ -183,7 +159,7 @@ app.post('/webhook', async (req, res) => {
                     });
                 }
             }
-        } catch (error) { console.error(error); }
+        } catch (error) {}
     }
 });
 
