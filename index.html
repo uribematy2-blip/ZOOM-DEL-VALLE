@@ -13,18 +13,22 @@
 </head>
 <body class="bg-gray-900 text-white font-sans antialiased pb-24">
     
-    <!-- ENCABEZADO -->
-    <header class="bg-gray-800 p-6 shadow-md border-b border-green-500 sticky top-0 z-40">
+    <!-- ENCABEZADO CON TU LOGO OFICIAL -->
+    <header class="bg-gray-800 p-4 md:p-6 shadow-md border-b border-green-500 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold text-white tracking-wider">ZOOM DEL VALLE</h1>
-                <p class="text-green-400 font-semibold text-sm mt-1">PLATAFORMA DE TRANSMISIONES</p>
+            <div class="flex items-center gap-4">
+                <!-- LOGO DE ZOOM DEL VALLE -->
+                <img src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=200&auto=format&fit=crop" alt="Logo Zoom del Valle" class="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-green-500 object-cover shadow-md">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black text-white tracking-wider">ZOOM DEL VALLE</h1>
+                    <p class="text-green-400 font-bold text-xs md:text-sm tracking-wide">PLATAFORMA DE TRANSMISIONES</p>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- BARRA DE CATEGORÍAS -->
-    <nav class="bg-gray-900 border-b border-gray-800 sticky top-[92px] z-30 shadow-lg">
+    <nav class="bg-gray-900 border-b border-gray-800 sticky top-[80px] md:top-[92px] z-30 shadow-lg">
         <div id="nav-categorias" class="max-w-7xl mx-auto flex gap-3 overflow-x-auto hide-scroll py-4 px-6 snap-x">
             <!-- Se genera solo -->
         </div>
@@ -105,7 +109,7 @@
             categoriasUnicas.forEach(cat => {
                 const videosCat = Object.values(allVideos).filter(v => v.categoria === cat);
 
-                // SECCIÓN ESPECIAL DE SERVICIOS
+                // SECCIÓN DE SERVICIOS
                 if (cat === 'SERVICIOS EXCLUSIVOS') {
                     let seccionHTML = `
                         <section class="animate-fade-in">
@@ -136,7 +140,6 @@
                         `;
                     });
 
-                    // TARJETA DE CONSULTA Y AGENDA (NUEVA)
                     seccionHTML += `
                         <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 flex flex-col justify-between p-6 transition shadow-lg">
                             <div>
@@ -153,9 +156,8 @@
                     seccionHTML += `</div></section>`;
                     main.innerHTML += seccionHTML;
                 } 
-                // SECCIÓN DE PARTIDOS (CON SUBDIVISIONES POR TORNEO)
+                // SECCIÓN DE PARTIDOS CON SUBDIVISIÓN POR TORNEO
                 else {
-                    // Agrupa automáticamente los videos de esta categoría por Torneo (Ej: SELECCION, INTEGRACION, etc.)
                     const torneosEnCat = [...new Set(videosCat.map(v => v.torneo))];
 
                     torneosEnCat.forEach(torneo => {
@@ -165,7 +167,6 @@
                         let filaHTML = `
                             <section class="animate-fade-in mb-10">
                                 <h2 class="text-xl md:text-2xl font-black text-gray-100 mb-6 tracking-wide uppercase border-l-4 border-green-500 pl-3">${tituloSeccion}</h2>
-                                <!-- Grilla de hasta 5 columnas por fila que baja prolijamente -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                         `;
                         
@@ -173,7 +174,7 @@
                             filaHTML += `
                                 <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-green-500 transition-all duration-300 relative group flex flex-col shadow-md">
                                     <div class="h-36 bg-gray-900 relative">
-                                        <img src="${video.thumbnail}" class="w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500">
+                                        <img src="${video.thumbnail}" onerror="this.src='https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=800&auto=format&fit=crop'" class="w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500">
                                         <span class="absolute top-2 right-2 bg-black bg-opacity-80 px-2 py-1 rounded text-green-400 font-bold tracking-wider text-sm border border-gray-600 shadow">$${video.price}</span>
                                     </div>
                                     <div class="p-4 flex flex-col justify-between flex-grow">
