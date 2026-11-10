@@ -10,43 +10,54 @@ app.use(express.static(__dirname));
 
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 
-// --- CONEXIÓN A TU GOOGLE SHEET ---
+// --- CONEXIÓN A GOOGLE SHEET ---
 let videoCatalog = {}; 
-// https://docs.google.com/spreadsheets/d/e/2PACX-1vTJALrBXYnmCq0BVhYru_p7ECbR27pfOdhFwXCy71RPghoXpz9v_7snm9ie-umb_rZlfoaWwj1aGgNK/pub?gid=0&single=true&output=tsv
-const SHEET_URL = 'ACA_PEGA_EL_LINK_LARGO_DEL_PASO_2';
+
+// ¡PEGÁ TU LINK DE GOOGLE SHEETS ACÁ ADENTRO (EL QUE TERMINA EN output=tsv)!
+const SHEET_URL = 'ACA_PEGA_EL_LINK_LARGO_TSV';
 
 async function actualizarCatalogo() {
     try {
         const res = await fetch(SHEET_URL);
         const text = await res.text();
-        const lineas = text.split('\n');
+        
+        // Separa las filas soportando todos los formatos de línea (\r\n y \n)
+        const lineas = text.split(/\r?\n/);
         const nuevoCatalogo = {};
 
-        // Empezamos desde la línea 1 para saltar los encabezados
+        // Empezamos desde la línea 1 para saltar los encabezados (id_interno, title, price, youtubeId, categoria)
         for (let i = 1; i < lineas.length; i++) {
-            if (!lineas[i].trim()) continue; // Salta líneas vacías
+            if (!lineas[i].trim()) continue; 
             
-            // Separamos las columnas por la tabulación del TSV
-            const [id, title, price, youtubeId, categoria, club] = lineas[i].split('\t');
+            const [id, title, price, youtubeId, categoria] = lineas[i].split('\t');
 
             if (id && title && price && youtubeId) {
                 nuevoCatalogo[id.trim()] = {
                     title: title.trim(),
                     price: Number(price.trim()),
                     youtubeId: youtubeId.trim(),
-                    categoria: categoria ? categoria.trim() : 'resumen',
-                    club: club ? club.trim() : 'Todos'
+                    categoria: categoria ? categoria.trim().toLowerCase() : 'resumen'
                 };
             }
         }
-        videoCatalog = nuevoCatalogo;
-        console.log("¡Catálogo sincronizado con Google Sheets con éxito!");
+        
+        // Si logró leer videos del Excel, los usa. Si el Excel está vacío, usa tu video de prueba.
+        if (Object.keys(nuevoCatalogo).length > 0) {
+            videoCatalog = nuevoCatalogo;
+        } else {
+            videoCatalog = {
+                'video-prueba': { title: 'Prueba: Video Zoom del Valle', price: 1500, youtubeId: 'GFqJqDvKM-o', categoria: 'resumen' }
+            };
+        }
     } catch (error) {
-        console.error("Error al leer el Google Sheet:", error);
+        console.error("Error al leer Google Sheets, activando video de emergencia:", error);
+        videoCatalog = {
+            'video-prueba': { title: 'Prueba: Video Zoom del Valle', price: 1500, youtubeId: 'GFqJqDvKM-o', categoria: 'resumen' }
+        };
     }
 }
 
-// El servidor lee tu Excel apenas arranca, y luego vuelve a leerlo cada 5 minutos
+// Ejecuta la lectura inicial
 actualizarCatalogo();
 setInterval(actualizarCatalogo, 5 * 60 * 1000);
 
@@ -70,7 +81,6 @@ app.get('/api/videos', (req, res) => {
             title: videoCatalog[key].title,
             price: videoCatalog[key].price,
             categoria: videoCatalog[key].categoria,
-            club: videoCatalog[key].club,
             thumbnail: `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/hqdefault.jpg`
         };
     }
@@ -82,8 +92,7 @@ app.post('/crear-pago', async (req, res) => {
     try {
         const { videoId, emailComprador } = req.body;
         const video = videoCatalog[videoId]; 
-        
-        if (!video) return res.status(404).json({ error: 'Video no encontrado en el catálogo' });
+        if (!video) return res.status(404).json({ error: 'Video no encontrado' });
 
         const preference = new Preference(client);
         const response = await preference.create({
@@ -113,7 +122,6 @@ app.get('/exito', (req, res) => {
     if (!video) return res.send('<h1>¡Gracias por tu compra! Revisá tu mail.</h1>');
 
     const youtubeLink = `https://youtube.com/watch?v=${video.youtubeId}`;
-
     res.send(`
         <!DOCTYPE html>
         <html lang="es">
@@ -144,11 +152,9 @@ app.post('/webhook', async (req, res) => {
         try {
             const payment = new Payment(client);
             const paymentInfo = await payment.get({ id: query['data.id'] || query.id });
-
             if (paymentInfo.status === 'approved') {
                 const { video_id, email_comprador } = paymentInfo.metadata;
                 const video = videoCatalog[video_id];
-
                 if (video && email_comprador) {
                     const youtubeLink = `https://youtube.com/watch?v=${video.youtubeId}`;
                     await transporter.sendMail({
