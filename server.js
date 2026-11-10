@@ -10,67 +10,23 @@ app.use(express.static(__dirname));
 
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 
-let videoCatalog = {}; 
+// --- CATÁLOGO DE VIDEOS DE ZOOM DEL VALLE ---
+// Si querés agregar más a futuro, solo copiás una línea, le cambiás el número (6, 7, etc) y ponés el nuevo código de YouTube.
+const videoCatalog = {
+    '1': { title: 'Los Perales vs Sporting', price: 80000, youtubeId: 'GFqJqDvKM-o', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    '2': { title: 'PERALES VS MONTE HERMOSO', price: 80000, youtubeId: 'P0N2TelKRVI', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    '3': { title: 'PERALES VS SAN JUAN', price: 80000, youtubeId: 'SnaUfNxgGBA', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    '4': { title: 'LOS PERALES VS PARANA', price: 80000, youtubeId: 'yy0KMkbQ6YQ', torneo: 'CAC B', categoria: 'DAMAS SUB 19' },
+    '5': { title: 'SAN JUAN RUGBY VS PARANA ROWIN', price: 80000, youtubeId: 'COM9N_tu-1Q', torneo: 'CAC B', categoria: 'DAMAS SUB 19' }
+};
 
-// ¡TU LINK OFICIAL PUBLICADO (A PRUEBA DE BLOQUEOS)!
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJALrBXYnmCq0BVhYru_p7ECbR27pfOdhFwXCy71RPghoXpz9v_7snm9ie-umb_rZlfoaWwj1aGgNK/pub?gid=0&single=true&output=tsv';
-
-async function actualizarCatalogo() {
-    try {
-        const res = await fetch(SHEET_URL);
-        const text = await res.text();
-        const lineas = text.split(/\r?\n/);
-        const nuevoCatalogo = {};
-
-        // Empezamos desde la línea 1 para saltar los encabezados
-        for (let i = 1; i < lineas.length; i++) {
-            if (!lineas[i].trim()) continue; 
-            
-            let [id, title, price, youtubeId, torneo, categoria] = lineas[i].split('\t');
-
-            // INTELIGENCIA: Auto-completar ID si te olvidás de ponerlo
-            let idFinal = (id && id.trim() !== '') ? id.trim() : `video-auto-${i}`;
-            
-            // INTELIGENCIA: Auto-recortar link de YouTube si pegaste la URL completa
-            let ytFinal = youtubeId ? youtubeId.trim() : '';
-            if (ytFinal.includes('youtu.be/')) {
-                ytFinal = ytFinal.split('youtu.be/')[1].split(/[?#]/)[0];
-            } else if (ytFinal.includes('youtube.com/watch')) {
-                ytFinal = ytFinal.split('v=')[1]?.split(/[&?#]/)[0] || ytFinal;
-            }
-
-            if (title && price && ytFinal) {
-                nuevoCatalogo[idFinal] = {
-                    title: title.trim(),
-                    price: Number(price.trim()),
-                    youtubeId: ytFinal,
-                    torneo: torneo ? torneo.trim() : 'Amistoso',
-                    categoria: categoria ? categoria.trim().toUpperCase() : 'GENERAL'
-                };
-            }
-        }
-        
-        if (Object.keys(nuevoCatalogo).length > 0) {
-            videoCatalog = nuevoCatalogo;
-            console.log("Catálogo actualizado desde Google Sheets.");
-        } else {
-            videoCatalog = {
-                'video-prueba': { title: 'Prueba: Los Perales', price: 1500, youtubeId: 'GFqJqDvKM-o', torneo: 'Superliga NQN', categoria: 'PRIMERA DAMAS' }
-            };
-        }
-    } catch (error) {
-        console.error("Error al leer Google Sheets:", error);
-    }
-}
-
-actualizarCatalogo();
-setInterval(actualizarCatalogo, 5 * 60 * 1000);
-
+// --- CONFIGURACIÓN DE CORREO ---
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
 });
 
+// --- RUTAS DE LA APLICACIÓN ---
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.get('/api/videos', (req, res) => {
@@ -82,24 +38,26 @@ app.get('/api/videos', (req, res) => {
             price: videoCatalog[key].price,
             torneo: videoCatalog[key].torneo,
             categoria: videoCatalog[key].categoria,
-            thumbnail: `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/hqdefault.jpg`
+            thumbnail: `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/hqdefault.jpg` // Genera la foto sola
         };
     }
     res.json(catalogSafe);
 });
 
+// --- PROCESO DE COBRO ---
 app.post('/crear-pago', async (req, res) => {
     try {
         const { videoId, emailComprador } = req.body;
         const video = videoCatalog[videoId]; 
+        
         if (!video) return res.status(404).json({ error: 'Video no encontrado' });
 
         const preference = new Preference(client);
         const response = await preference.create({
             body: {
-                items: [{ id: videoId, title: video.title, quantity: 1, unit_price: Number(video.price), currency_id: 'ARS' }],
+                items: [{ id: String(videoId), title: video.title, quantity: 1, unit_price: Number(video.price), currency_id: 'ARS' }],
                 payer: { email: emailComprador },
-                metadata: { video_id: videoId, email_comprador: emailComprador },
+                metadata: { video_id: String(videoId), email_comprador: emailComprador },
                 back_urls: {
                     success: `https://zoom-del-valle.onrender.com/exito?videoId=${videoId}`,
                     failure: "https://zoom-del-valle.onrender.com/",
@@ -115,6 +73,7 @@ app.post('/crear-pago', async (req, res) => {
     }
 });
 
+// --- PANTALLA DE ÉXITO ---
 app.get('/exito', (req, res) => {
     const videoId = req.query.videoId;
     const video = videoCatalog[videoId];
@@ -141,6 +100,7 @@ app.get('/exito', (req, res) => {
     `);
 });
 
+// --- WEBHOOK (ENVÍO AUTOMÁTICO DE MAIL) ---
 app.post('/webhook', async (req, res) => {
     const { query } = req;
     res.sendStatus(200);
