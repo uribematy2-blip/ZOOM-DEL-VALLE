@@ -102,7 +102,7 @@ const videoCatalog = {
         youtubeId: '', 
         torneo: 'TU VIDEO', 
         categoria: 'SERVICIOS EXCLUSIVOS',
-        customThumbnail: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=800&auto=format&fit=crop'
+        customThumbnail: 'https://raw.githubusercontent.com/uribematy2-blip/ZOOM-DEL-VALLE/35bf9d9e6c73866513e449e25f310f28f24623ff/LOGO%20ZOOM.jpg'
     }
 };
 
@@ -111,8 +111,35 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/api/videos', (req, res) => {
     const catalogSafe = {};
     for (const key in videoCatalog) {
-        // Usamos maxresdefault para máxima calidad HD en los videos de YouTube
-        let thumb = videoCatalog[key].customThumbnail || `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/maxresdefault.jpg`; catalogSafe[key] = { id: key, title: videoCatalog[key].title, price: videoCatalog[key].price, torneo: videoCatalog[key].torneo, categoria: videoCatalog[key].categoria, thumbnail: thumb }; } res.json(catalogSafe); });  app.post('/crear-pago', async (req, res) => { try { const { videoId, emailComprador } = req.body; const video = videoCatalog[videoId];  if (!video) return res.status(404).json({ error: 'Video o Servicio no encontrado' });  const preference = new Preference(client); const response = await preference.create({ body: { items: [{ id: String(videoId), title: video.title, quantity: 1, unit_price: Number(video.price), currency_id: 'ARS' }], payer: { email: emailComprador }, metadata: { video_id: String(videoId), email_comprador: emailComprador }, back_urls: { success: `https://zoom-del-valle.onrender.com/exito?videoId=${videoId}`,
+        // Usamos sddefault.jpg para alta calidad estable en el 99% de los videos de YouTube
+        let thumb = videoCatalog[key].customThumbnail || `https://img.youtube.com/vi/${videoCatalog[key].youtubeId}/sddefault.jpg`;
+        catalogSafe[key] = {
+            id: key,
+            title: videoCatalog[key].title,
+            price: videoCatalog[key].price,
+            torneo: videoCatalog[key].torneo,
+            categoria: videoCatalog[key].categoria,
+            thumbnail: thumb
+        };
+    }
+    res.json(catalogSafe);
+});
+
+app.post('/crear-pago', async (req, res) => {
+    try {
+        const { videoId, emailComprador } = req.body;
+        const video = videoCatalog[videoId]; 
+        
+        if (!video) return res.status(404).json({ error: 'Video o Servicio no encontrado' });
+
+        const preference = new Preference(client);
+        const response = await preference.create({
+            body: {
+                items: [{ id: String(videoId), title: video.title, quantity: 1, unit_price: Number(video.price), currency_id: 'ARS' }],
+                payer: { email: emailComprador },
+                metadata: { video_id: String(videoId), email_comprador: emailComprador },
+                back_urls: {
+                    success: `https://zoom-del-valle.onrender.com/exito?videoId=${videoId}`,
                     failure: "https://zoom-del-valle.onrender.com/",
                     pending: "https://zoom-del-valle.onrender.com/"
                 },
@@ -125,7 +152,7 @@ app.get('/api/videos', (req, res) => {
     }
 });
 
-// --- PANTALLA DE ÉXITO (ENTREGA INMEDIATA EN PANTALLA + WHATSAPP) ---
+// --- PANTALLA DE ÉXITO ---
 app.get('/exito', (req, res) => {
     const videoId = req.query.videoId;
     const video = videoCatalog[videoId];
@@ -176,4 +203,25 @@ app.get('/exito', (req, res) => {
         <body class="bg-gray-900 text-white flex items-center justify-center h-screen p-4">
             <div class="bg-gray-800 p-8 rounded-xl border border-gray-700 text-center max-w-lg shadow-2xl">
                 <div class="text-green-400 text-5xl mb-4">✓</div>
-                <h1
+                <h1 class="text-3xl font-bold mb-2">¡Pago Aprobado!</h1>
+                <p class="mb-6 text-gray-300">Acceso liberado al partido:<br><strong class="text-white text-lg">${video.title}</strong></p>
+                
+                <a href="${youtubeLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-lg text-lg font-bold block mb-6 transition transform hover:scale-105 shadow-lg">
+                    ▶ VER PARTIDO EN YOUTUBE
+                </a>
+
+                <hr class="border-gray-600 mb-6">
+
+                <p class="text-xs text-gray-400 mb-3">¿Querés reportar este acceso o guardarlo en tu celu?</p>
+                <a href="${whatsappLink}" target="_blank" class="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-lg text-sm font-bold block transition flex items-center justify-center gap-2">
+                    📱 Guardar / Consultar por WhatsApp
+                </a>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Corriendo en puerto ${PORT}`));
+    
